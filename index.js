@@ -1,29 +1,46 @@
 let audio = new Audio();
   audio.src = 'EtudeNo1.mp3';
   audio.loop = true;
-  audio.autoplay = true;
+  audio.autoplay = false;
+  let firstTime = true;
 
-  let canvas, ctx, source, context, analyser, fbc_array;
-  window.addEventListener('load', initMp3Player, false);
+let canvas, ctx, source, context, analyser, fbc_array;
+// window.addEventListener('load', initMp3Player, false);
 
-  let colors = ['#05668D', '#028090', '#00A896', '#0A7DA5', '#0A4B5F', '#021E8C', '#1330A3', '#304BBA', '#4964D1', 'transparent', '#00799B', '#DDFFF7', '#93E1D8']
+document.querySelector('canvas').addEventListener('click', startSound);
+document.querySelector('canvas').addEventListener('touch', startSound);
 
-  function initMp3Player() {
-    document.getElementById('Audio').appendChild(audio);
-    context = new AudioContext();
-    analyser = context.createAnalyser();
-    source = context.createMediaElementSource(audio);
-    source.connect(analyser);
-    analyser.connect(context.destination);
-
-    canvas = document.getElementById('AudioVisual');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    ctx = canvas.getContext('2d');
-    frameLooper();
+function startSound() {
+  if (firstTime) {
+    initMp3Player(context);
+    firstTime = false;
   }
+  // audio.play() ? audio.pause() : audio.play();
+  context.resume().then(() => {
+    audio.play();
+    console.log('Playback resumed successfully');
+  });
+}
 
-  function Circle(x, y, dx, dy, radius) {
+let colors = ['#05668D', '#028090', '#00A896', '#0A7DA5', '#0A4B5F', '#021E8C', '#1330A3', '#304BBA', '#4964D1', 'transparent', '#00799B', '#DDFFF7', '#93E1D8'];
+
+function initMp3Player() {
+  document.getElementById('Audio').appendChild(audio);
+  context = new AudioContext();
+
+  analyser = context.createAnalyser();
+  source = context.createMediaElementSource(audio);
+  source.connect(analyser);
+  analyser.connect(context.destination);
+
+  canvas = document.getElementById('AudioVisual');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  ctx = canvas.getContext('2d');
+  frameLooper();
+}
+
+function Circle(x, y, dx, dy, radius) {
   this.x = x;
   this.y = y;
   this.dx = dx;
@@ -56,27 +73,27 @@ let audio = new Audio();
   }
 }
 
-  let allCircles = [];
-  for (let i = 0; i < 50; i++) {
-    let radius = 20;
-    let x = Math.random() * (innerWidth - radius * 2) + radius;
-    let y = Math.random() * (innerHeight - radius * 2) + radius;
-    let dx = Math.random() - 0.5 * 3;
-    let dy = Math.random() - 0.5 * 3;
-    allCircles.push(new Circle(x, y, dx, dy, radius));
-  }
+let allCircles = [];
+for (let i = 0; i < 50; i++) {
+  let radius = 20;
+  let x = Math.random() * (innerWidth - radius * 2) + radius;
+  let y = Math.random() * (innerHeight - radius * 2) + radius;
+  let dx = Math.random() - 0.5 * 3;
+  let dy = Math.random() - 0.5 * 3;
+  allCircles.push(new Circle(x, y, dx, dy, radius));
+}
 
   
 
-  function frameLooper() {
-    window.requestAnimationFrame(frameLooper);
-    // array of sound frequency data representation
-    fbc_array = new Uint8Array(analyser.frequencyBinCount);
-    analyser.getByteFrequencyData(fbc_array);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+function frameLooper() {
+  window.requestAnimationFrame(frameLooper);
+  // array of sound frequency data representation
+  fbc_array = new Uint8Array(analyser.frequencyBinCount);
+  analyser.getByteFrequencyData(fbc_array);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    for (let i = 0; i < allCircles.length; i++) {
-      allCircles[i].radius = (fbc_array[i] / 2)
-      allCircles[i].update();
-    }    
-  }
+  for (let i = 0; i < allCircles.length; i++) {
+    allCircles[i].radius = (fbc_array[i] / 2)
+    allCircles[i].update();
+  }    
+}
